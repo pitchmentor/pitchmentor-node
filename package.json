@@ -1,6 +1,6 @@
 {
   "name": "@pitchmentor/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official TypeScript/JavaScript SDK for the Pitch Mentor API (real-time AI sales coaching).",
   "type": "module",
   "main": "dist/index.js",
@@ -21,12 +21,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pitchmentor/sdk.git",
-    "directory": "ts"
+    "url": "git+https://github.com/pitchmentor/pitchmentor-node.git"
   },
   "homepage": "https://pitchmentor.net/docs",
   "bugs": {
-    "url": "https://github.com/pitchmentor/sdk/issues"
+    "url": "https://github.com/pitchmentor/pitchmentor-node/issues"
   },
   "engines": {
     "node": ">=20"
@@ -35,9 +34,9 @@
     "build": "tsc -p tsconfig.json",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "regen": "scripts/regen.sh"
   },
-  "dependencies": {},
   "keywords": [
     "pitchmentor",
     "pitch-mentor",
@@ -46,5 +45,9 @@
     "sdk",
     "typescript"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^6.0.3"
+  }
 }

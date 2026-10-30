@@ -1,0 +1,14 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: pitchmentor/.github/.github/workflows/npm-ci.yml@b8e5f0af1f83f377395b80a33d9320176bd45179 # v1

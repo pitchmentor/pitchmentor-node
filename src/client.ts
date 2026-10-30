@@ -1,7 +1,7 @@
 import { ConnectionError, errorFromResponse, parseRetryAfter, type Page, type RequestOptions } from "./core.js";
 import { Operations } from "./generated.js";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.1.1";
 export const DEFAULT_BASE_URL = "https://api.pitchmentor.net";
 
 export interface ClientOptions {

@@ -1,0 +1,19 @@
+name: Release
+
+# Push a vX.Y.Z tag matching package.json: checks the version, tests, publishes to npm with provenance
+# (repo secret NPM_TOKEN) and creates the GitHub Release. Safe to re-run.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: pitchmentor/.github/.github/workflows/npm-release.yml@b8e5f0af1f83f377395b80a33d9320176bd45179 # v1
+    permissions:
+      contents: write # GitHub Release
+      id-token: write # npm provenance
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
