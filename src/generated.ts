@@ -424,7 +424,7 @@ export interface GetAnalyticsOverviewQuery {
   user_id?: string;
 }
 
-export interface GetAnalyticsUsersQuery {
+export interface GetAnalyticsByMemberQuery {
   period?: "7d" | "30d" | "90d";
   /** Single local day (YYYY-MM-DD); returns 15-minute buckets */
   date?: string;
@@ -505,7 +505,7 @@ export type UpdateLeadBody = {
   metadata?: Record<string, unknown>;
 };
 
-export type UpdateTeamBody = {
+export type UpdateTeamConfigBody = {
   name?: string;
   companyDescription?: string;
   productsServices?: string;
@@ -643,14 +643,14 @@ export const operations = {
   archiveCall: {"method":"POST","path":"/v1/calls/{id}/archive","tag":"Calls","summary":"Archive a call (hidden from history and analytics, not deleted)","description":"Requires scope `calls:write`.","scope":"calls:write","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   unarchiveCall: {"method":"POST","path":"/v1/calls/{id}/unarchive","tag":"Calls","summary":"Restore an archived call","description":"Requires scope `calls:write`.","scope":"calls:write","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   getAnalyticsOverview: {"method":"GET","path":"/v1/analytics/overview","tag":"Analytics","summary":"Team call analytics","description":"Requires scope `analytics:read`.","scope":"analytics:read","pathParams":[],"query":{"type":"object","properties":{"period":{"type":"string","enum":["7d","30d","90d"]},"date":{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}$","description":"Single local day (YYYY-MM-DD); returns 15-minute buckets"},"tz":{"type":"integer","minimum":-720,"maximum":720,"description":"Timezone offset in minutes (as JS getTimezoneOffset)"},"user_id":{"type":"string","description":"Only this team member"}}},"body":null,"paginated":false,"destructive":false,"csv":false},
-  getAnalyticsUsers: {"method":"GET","path":"/v1/analytics/users","tag":"Analytics","summary":"Per-member call stats","description":"Requires scope `analytics:read`.","scope":"analytics:read","pathParams":[],"query":{"type":"object","properties":{"period":{"type":"string","enum":["7d","30d","90d"]},"date":{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}$","description":"Single local day (YYYY-MM-DD); returns 15-minute buckets"},"tz":{"type":"integer","minimum":-720,"maximum":720,"description":"Timezone offset in minutes (as JS getTimezoneOffset)"}}},"body":null,"paginated":false,"destructive":false,"csv":false},
+  getAnalyticsByMember: {"method":"GET","path":"/v1/analytics/users","tag":"Analytics","summary":"Per-member call stats","description":"Requires scope `analytics:read`.","scope":"analytics:read","pathParams":[],"query":{"type":"object","properties":{"period":{"type":"string","enum":["7d","30d","90d"]},"date":{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}$","description":"Single local day (YYYY-MM-DD); returns 15-minute buckets"},"tz":{"type":"integer","minimum":-720,"maximum":720,"description":"Timezone offset in minutes (as JS getTimezoneOffset)"}}},"body":null,"paginated":false,"destructive":false,"csv":false},
   listLeads: {"method":"GET","path":"/v1/leads","tag":"Leads","summary":"List leads (newest first)","description":"Requires scope `leads:read`.","scope":"leads:read","pathParams":[],"query":{"type":"object","properties":{"limit":{"type":"integer","minimum":1,"maximum":100,"default":20,"description":"Page size"},"cursor":{"type":"string","description":"`next_cursor` from the previous page"},"search":{"type":"string","description":"Name, email, company or phone digits"},"stage":{"type":"string"},"source":{"type":"string"}}},"body":null,"paginated":true,"destructive":false,"csv":false},
   upsertLead: {"method":"POST","path":"/v1/leads","tag":"Leads","summary":"Create a lead, or update the one with the same externalId","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":[],"query":null,"body":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string","format":"date-time"}}}},"metadata":{"type":"object","additionalProperties":true}},"required":["name"]},"paginated":false,"destructive":false,"csv":false},
   batchUpsertLeads: {"method":"POST","path":"/v1/leads/batch","tag":"Leads","summary":"Import up to 100 leads (upsert on externalId; omitted fields are cleared on update)","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":[],"query":null,"body":{"type":"object","required":["leads"],"properties":{"leads":{"type":"array","minItems":1,"maxItems":100,"items":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string","format":"date-time"}}}},"metadata":{"type":"object","additionalProperties":true}},"required":["name"]}}}},"paginated":false,"destructive":false,"csv":false},
   getLead: {"method":"GET","path":"/v1/leads/{id}","tag":"Leads","summary":"Get a lead","description":"Requires scope `leads:read`.","scope":"leads:read","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   updateLead: {"method":"PATCH","path":"/v1/leads/{id}","tag":"Leads","summary":"Update a lead (only provided fields change)","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":["id"],"query":null,"body":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string","format":"date-time"}}}},"metadata":{"type":"object","additionalProperties":true}}},"paginated":false,"destructive":false,"csv":false},
-  getTeam: {"method":"GET","path":"/v1/team","tag":"Team","summary":"Team settings and coaching context","description":"Requires scope `team:read`.","scope":"team:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
-  updateTeam: {"method":"PATCH","path":"/v1/team","tag":"Team","summary":"Update team settings","description":"Requires scope `team:write`.","scope":"team:write","pathParams":[],"query":null,"body":{"type":"object","additionalProperties":false,"minProperties":1,"properties":{"name":{"type":"string","minLength":1},"companyDescription":{"type":"string"},"productsServices":{"type":"string"},"idealCustomerProfile":{"type":"string"},"commonObjections":{"type":"array","items":{"type":"string"}},"toneGuidelines":{"type":"string"},"customPromptAdditions":{"type":"string"},"coachingStyleId":{"type":["string","null"]},"objectionHandlers":{"type":"array","items":{"type":"object","required":["objection","handler"],"properties":{"objection":{"type":"string"},"handler":{"type":"string"}}}},"setGoals":{"type":"string"},"closerGoals":{"type":"string"},"competitors":{"type":"array","items":{"type":"object","required":["name"],"properties":{"name":{"type":"string"},"weaknesses":{"type":"string"}}}},"industry":{"type":"string"},"crmBaseUrl":{"type":"string"},"crmSessionCookie":{"type":"string","description":"Write-only; stored encrypted"},"settingsLocked":{"type":"boolean"},"styleLocked":{"type":"boolean"},"discordBotToken":{"type":["string","null"],"description":"Write-only"},"discordClientId":{"type":["string","null"]}}},"paginated":false,"destructive":false,"csv":false},
+  getTeamConfig: {"method":"GET","path":"/v1/team","tag":"Team","summary":"Team settings and coaching context","description":"Requires scope `team:read`.","scope":"team:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
+  updateTeamConfig: {"method":"PATCH","path":"/v1/team","tag":"Team","summary":"Update team settings","description":"Requires scope `team:write`.","scope":"team:write","pathParams":[],"query":null,"body":{"type":"object","additionalProperties":false,"minProperties":1,"properties":{"name":{"type":"string","minLength":1},"companyDescription":{"type":"string"},"productsServices":{"type":"string"},"idealCustomerProfile":{"type":"string"},"commonObjections":{"type":"array","items":{"type":"string"}},"toneGuidelines":{"type":"string"},"customPromptAdditions":{"type":"string"},"coachingStyleId":{"type":["string","null"]},"objectionHandlers":{"type":"array","items":{"type":"object","required":["objection","handler"],"properties":{"objection":{"type":"string"},"handler":{"type":"string"}}}},"setGoals":{"type":"string"},"closerGoals":{"type":"string"},"competitors":{"type":"array","items":{"type":"object","required":["name"],"properties":{"name":{"type":"string"},"weaknesses":{"type":"string"}}}},"industry":{"type":"string"},"crmBaseUrl":{"type":"string"},"crmSessionCookie":{"type":"string","description":"Write-only; stored encrypted"},"settingsLocked":{"type":"boolean"},"styleLocked":{"type":"boolean"},"discordBotToken":{"type":["string","null"],"description":"Write-only"},"discordClientId":{"type":["string","null"]}}},"paginated":false,"destructive":false,"csv":false},
   listMembers: {"method":"GET","path":"/v1/team/members","tag":"Team","summary":"List team members","description":"Requires scope `team:read`.","scope":"team:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   removeMember: {"method":"DELETE","path":"/v1/team/members/{id}","tag":"Team","summary":"Remove a member from the team","description":"The member keeps their account and calls; managers can't be removed via the API.\n\nRequires scope `team:write`.\n\nDESTRUCTIVE: cannot be undone.","scope":"team:write","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":true,"csv":false},
   listInvites: {"method":"GET","path":"/v1/team/invites","tag":"Team","summary":"List pending invites","description":"Requires scope `team:read`.","scope":"team:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
@@ -659,10 +659,10 @@ export const operations = {
   listCoachingStyles: {"method":"GET","path":"/v1/coaching/styles","tag":"Coaching","summary":"Built-in and team coaching styles","description":"Requires scope `coaching:read`.","scope":"coaching:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   createCoachingStyle: {"method":"POST","path":"/v1/coaching/styles","tag":"Coaching","summary":"Create a custom coaching style (Premium/Enterprise)","description":"Requires scope `coaching:write`.","scope":"coaching:write","pathParams":[],"query":null,"body":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"personalityPrompt":{"type":"string"},"toneDescriptor":{"type":"string"},"closingPhilosophy":{"type":"string"},"objectionStyle":{"type":"string"}},"required":["name","personalityPrompt"]},"paginated":false,"destructive":false,"csv":false},
   updateCoachingStyle: {"method":"PATCH","path":"/v1/coaching/styles/{id}","tag":"Coaching","summary":"Update a custom coaching style","description":"Requires scope `coaching:write`.","scope":"coaching:write","pathParams":["id"],"query":null,"body":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"personalityPrompt":{"type":"string"},"toneDescriptor":{"type":"string"},"closingPhilosophy":{"type":"string"},"objectionStyle":{"type":"string"}}},"paginated":false,"destructive":false,"csv":false},
-  getSubscription: {"method":"GET","path":"/v1/billing/subscription","tag":"Billing","summary":"Plan and subscription status","description":"Requires scope `billing:read`.","scope":"billing:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
+  getBillingStatus: {"method":"GET","path":"/v1/billing/subscription","tag":"Billing","summary":"Plan and subscription status","description":"Requires scope `billing:read`.","scope":"billing:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   getUsage: {"method":"GET","path":"/v1/billing/usage","tag":"Billing","summary":"Token and seat usage for the current period","description":"Requires scope `billing:read`.","scope":"billing:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
-  getMemberUsage: {"method":"GET","path":"/v1/billing/usage/members","tag":"Billing","summary":"Per-member usage for the current period","description":"Requires scope `billing:read`.","scope":"billing:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
-  getReferrals: {"method":"GET","path":"/v1/referrals","tag":"Referrals","summary":"Referral link and stats","description":"Requires scope `referrals:read`.","scope":"referrals:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
+  listMemberUsage: {"method":"GET","path":"/v1/billing/usage/members","tag":"Billing","summary":"Per-member usage for the current period","description":"Requires scope `billing:read`.","scope":"billing:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
+  getReferralStats: {"method":"GET","path":"/v1/referrals","tag":"Referrals","summary":"Referral link and stats","description":"Requires scope `referrals:read`.","scope":"referrals:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   listApiKeys: {"method":"GET","path":"/v1/api-keys","tag":"API Keys","summary":"List API keys (including revoked)","description":"Requires scope `api_keys:read`.","scope":"api_keys:read","pathParams":[],"query":{"type":"object","properties":{"limit":{"type":"integer","minimum":1,"maximum":100,"default":20,"description":"Page size"},"cursor":{"type":"string","description":"`next_cursor` from the previous page"}}},"body":null,"paginated":true,"destructive":false,"csv":false},
   createApiKey: {"method":"POST","path":"/v1/api-keys","tag":"API Keys","summary":"Create an API key (the key is returned once)","description":"Requires scope `api_keys:write`.","scope":"api_keys:write","pathParams":[],"query":null,"body":{"type":"object","required":["name","scopes"],"additionalProperties":false,"properties":{"name":{"type":"string","minLength":1,"maxLength":100},"scopes":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","enum":["calls:read","calls:write","analytics:read","leads:read","leads:write","team:read","team:write","coaching:read","coaching:write","billing:read","referrals:read","webhooks:read","webhooks:write","api_keys:read","api_keys:write","admin"]}},"expiresAt":{"type":["string","null"],"format":"date-time","description":"Omit or null for no expiry"}}},"paginated":false,"destructive":false,"csv":false},
   rotateApiKey: {"method":"POST","path":"/v1/api-keys/{id}/rotate","tag":"API Keys","summary":"Replace the key's secret (the old secret stops working immediately)","description":"Requires scope `api_keys:write`.\n\nDESTRUCTIVE: cannot be undone.","scope":"api_keys:write","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":true,"csv":false},
@@ -759,7 +759,7 @@ export abstract class Operations {
    * Per-member call stats.
    * Requires scope `analytics:read`.
    */
-  getAnalyticsUsers(query: GetAnalyticsUsersQuery = {}, options?: RequestOptions): Promise<AnalyticsUsers> {
+  getAnalyticsByMember(query: GetAnalyticsByMemberQuery = {}, options?: RequestOptions): Promise<AnalyticsUsers> {
     return this.request("GET", `/v1/analytics/users`, { query, ...options });
   }
 
@@ -812,7 +812,7 @@ export abstract class Operations {
    * Team settings and coaching context.
    * Requires scope `team:read`.
    */
-  getTeam(options?: RequestOptions): Promise<TeamConfig> {
+  getTeamConfig(options?: RequestOptions): Promise<TeamConfig> {
     return this.request("GET", `/v1/team`, { ...options });
   }
 
@@ -820,7 +820,7 @@ export abstract class Operations {
    * Update team settings.
    * Requires scope `team:write`.
    */
-  updateTeam(body: UpdateTeamBody, options?: RequestOptions): Promise<TeamConfig> {
+  updateTeamConfig(body: UpdateTeamConfigBody, options?: RequestOptions): Promise<TeamConfig> {
     return this.request("PATCH", `/v1/team`, { body, ...options });
   }
 
@@ -895,7 +895,7 @@ export abstract class Operations {
    * Plan and subscription status.
    * Requires scope `billing:read`.
    */
-  getSubscription(options?: RequestOptions): Promise<BillingStatus> {
+  getBillingStatus(options?: RequestOptions): Promise<BillingStatus> {
     return this.request("GET", `/v1/billing/subscription`, { ...options });
   }
 
@@ -911,7 +911,7 @@ export abstract class Operations {
    * Per-member usage for the current period.
    * Requires scope `billing:read`.
    */
-  getMemberUsage(options?: RequestOptions): Promise<Page<MemberUsage>> {
+  listMemberUsage(options?: RequestOptions): Promise<Page<MemberUsage>> {
     return this.request("GET", `/v1/billing/usage/members`, { ...options });
   }
 
@@ -919,7 +919,7 @@ export abstract class Operations {
    * Referral link and stats.
    * Requires scope `referrals:read`.
    */
-  getReferrals(options?: RequestOptions): Promise<Referrals> {
+  getReferralStats(options?: RequestOptions): Promise<Referrals> {
     return this.request("GET", `/v1/referrals`, { ...options });
   }
 
