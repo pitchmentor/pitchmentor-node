@@ -115,8 +115,10 @@ test("CSV export returns text", async () => {
 });
 
 test("operation metadata covers the spec", () => {
-  assert.equal(Object.keys(operations).length, 41);
-  assert.equal(operations.revokeApiKey.destructive, true);
+  assert.equal(Object.keys(operations).length, 42);
+  // from the spec's x-destructive
+  const destructive = Object.keys(operations).filter((id) => operations[id].destructive).sort();
+  assert.deepEqual(destructive, ["cancelInvite", "deleteWebhookEndpoint", "removeMember", "revokeApiKey", "rotateApiKey", "rotateWebhookSecret"]);
   assert.equal(operations.listCalls.paginated, true);
 });
 

@@ -36,6 +36,33 @@ export interface Call {
   userPicture: string | null;
 }
 
+/** The call record without the transcript (fetch it with GET /v1/calls/{id}) */
+export interface CallCompletedData {
+  id: string;
+  createdAt: string;
+  endedAt: string | null;
+  duration: number | null;
+  platform: string | null;
+  callType: string | null;
+  prospectName: string | null;
+  prospectPhone: string | null;
+  prospectCompany: string | null;
+  totalCoachingSuggestions: number | null;
+  objectionsDetected: string[];
+  outcome: string | null;
+  callSummary: string | null;
+  tokensUsed: number | null;
+  callScore: number | null;
+  talkRatio: number | null;
+  archivedAt: string | null;
+  userId: string;
+  teamId: string;
+  crmLeadId: string | null;
+  crmClientId: string | null;
+  repTalkTime: number | null;
+  customerTalkTime: number | null;
+}
+
 export interface CallRecord {
   id: string;
   createdAt: string;
@@ -58,14 +85,14 @@ export interface CallRecord {
   teamId: string;
   crmLeadId: string | null;
   crmClientId: string | null;
+  repTalkTime: number | null;
+  customerTalkTime: number | null;
   fullTranscript: string | null;
   structuredTranscript: Array<{
     speaker: string;
     text: string;
     timestamp: number;
   }>;
-  repTalkTime: number | null;
-  customerTalkTime: number | null;
 }
 
 export interface CoachingLog {
@@ -172,8 +199,8 @@ export interface Lead {
   description: string | null;
   notes: Array<{
     content: string;
-    author: string;
-    createdAt: string;
+    author?: string;
+    createdAt?: string;
   }>;
   metadata: Record<string, unknown>;
 }
@@ -573,7 +600,7 @@ export const WEBHOOK_EVENT_TYPES = ["call.completed","call.archived","call.unarc
 
 /** A verified webhook payload. `webhook.test` is sent by testWebhookEndpoint. */
 export type WebhookEvent =
-  | { type: "call.completed"; timestamp: string; data: CallRecord }
+  | { type: "call.completed"; timestamp: string; data: CallCompletedData }
   | { type: "call.archived"; timestamp: string; data: CallArchiveState }
   | { type: "call.unarchived"; timestamp: string; data: CallArchiveState }
   | { type: "lead.created"; timestamp: string; data: Lead }
@@ -585,7 +612,10 @@ export type WebhookEvent =
   joinedAt: string;
 } }
   | { type: "subscription.updated"; timestamp: string; data: BillingStatus }
-  | { type: "webhook.test"; timestamp: string; data: { endpointId: string; message: string } };
+  | { type: "webhook.test"; timestamp: string; data: {
+  endpointId: string;
+  message: string;
+} };
 
 export interface OperationMeta {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -615,10 +645,10 @@ export const operations = {
   getAnalyticsOverview: {"method":"GET","path":"/v1/analytics/overview","tag":"Analytics","summary":"Team call analytics","description":"Requires scope `analytics:read`.","scope":"analytics:read","pathParams":[],"query":{"type":"object","properties":{"period":{"type":"string","enum":["7d","30d","90d"]},"date":{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}$","description":"Single local day (YYYY-MM-DD); returns 15-minute buckets"},"tz":{"type":"integer","minimum":-720,"maximum":720,"description":"Timezone offset in minutes (as JS getTimezoneOffset)"},"user_id":{"type":"string","description":"Only this team member"}}},"body":null,"paginated":false,"destructive":false,"csv":false},
   getAnalyticsUsers: {"method":"GET","path":"/v1/analytics/users","tag":"Analytics","summary":"Per-member call stats","description":"Requires scope `analytics:read`.","scope":"analytics:read","pathParams":[],"query":{"type":"object","properties":{"period":{"type":"string","enum":["7d","30d","90d"]},"date":{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}$","description":"Single local day (YYYY-MM-DD); returns 15-minute buckets"},"tz":{"type":"integer","minimum":-720,"maximum":720,"description":"Timezone offset in minutes (as JS getTimezoneOffset)"}}},"body":null,"paginated":false,"destructive":false,"csv":false},
   listLeads: {"method":"GET","path":"/v1/leads","tag":"Leads","summary":"List leads (newest first)","description":"Requires scope `leads:read`.","scope":"leads:read","pathParams":[],"query":{"type":"object","properties":{"limit":{"type":"integer","minimum":1,"maximum":100,"default":20,"description":"Page size"},"cursor":{"type":"string","description":"`next_cursor` from the previous page"},"search":{"type":"string","description":"Name, email, company or phone digits"},"stage":{"type":"string"},"source":{"type":"string"}}},"body":null,"paginated":true,"destructive":false,"csv":false},
-  upsertLead: {"method":"POST","path":"/v1/leads","tag":"Leads","summary":"Create a lead, or update the one with the same externalId","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":[],"query":null,"body":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string"}}}},"metadata":{"type":"object","additionalProperties":true}},"required":["name"]},"paginated":false,"destructive":false,"csv":false},
-  batchUpsertLeads: {"method":"POST","path":"/v1/leads/batch","tag":"Leads","summary":"Import up to 100 leads (upsert on externalId; omitted fields are cleared on update)","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":[],"query":null,"body":{"type":"object","required":["leads"],"properties":{"leads":{"type":"array","minItems":1,"maxItems":100,"items":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string"}}}},"metadata":{"type":"object","additionalProperties":true}},"required":["name"]}}}},"paginated":false,"destructive":false,"csv":false},
+  upsertLead: {"method":"POST","path":"/v1/leads","tag":"Leads","summary":"Create a lead, or update the one with the same externalId","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":[],"query":null,"body":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string","format":"date-time"}}}},"metadata":{"type":"object","additionalProperties":true}},"required":["name"]},"paginated":false,"destructive":false,"csv":false},
+  batchUpsertLeads: {"method":"POST","path":"/v1/leads/batch","tag":"Leads","summary":"Import up to 100 leads (upsert on externalId; omitted fields are cleared on update)","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":[],"query":null,"body":{"type":"object","required":["leads"],"properties":{"leads":{"type":"array","minItems":1,"maxItems":100,"items":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string","format":"date-time"}}}},"metadata":{"type":"object","additionalProperties":true}},"required":["name"]}}}},"paginated":false,"destructive":false,"csv":false},
   getLead: {"method":"GET","path":"/v1/leads/{id}","tag":"Leads","summary":"Get a lead","description":"Requires scope `leads:read`.","scope":"leads:read","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
-  updateLead: {"method":"PATCH","path":"/v1/leads/{id}","tag":"Leads","summary":"Update a lead (only provided fields change)","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":["id"],"query":null,"body":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string"}}}},"metadata":{"type":"object","additionalProperties":true}}},"paginated":false,"destructive":false,"csv":false},
+  updateLead: {"method":"PATCH","path":"/v1/leads/{id}","tag":"Leads","summary":"Update a lead (only provided fields change)","description":"Requires scope `leads:write`.","scope":"leads:write","pathParams":["id"],"query":null,"body":{"type":"object","properties":{"externalId":{"type":["string","null"],"description":"ID in your CRM; POST upserts on it"},"source":{"type":["string","null"]},"name":{"type":"string","minLength":1},"phone":{"type":["string","null"]},"email":{"type":["string","null"]},"company":{"type":["string","null"]},"stage":{"type":["string","null"]},"value":{"type":["integer","null"],"description":"In cents"},"description":{"type":["string","null"]},"notes":{"type":"array","items":{"type":"object","required":["content"],"properties":{"content":{"type":"string"},"author":{"type":"string"},"createdAt":{"type":"string","format":"date-time"}}}},"metadata":{"type":"object","additionalProperties":true}}},"paginated":false,"destructive":false,"csv":false},
   getTeam: {"method":"GET","path":"/v1/team","tag":"Team","summary":"Team settings and coaching context","description":"Requires scope `team:read`.","scope":"team:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   updateTeam: {"method":"PATCH","path":"/v1/team","tag":"Team","summary":"Update team settings","description":"Requires scope `team:write`.","scope":"team:write","pathParams":[],"query":null,"body":{"type":"object","additionalProperties":false,"minProperties":1,"properties":{"name":{"type":"string","minLength":1},"companyDescription":{"type":"string"},"productsServices":{"type":"string"},"idealCustomerProfile":{"type":"string"},"commonObjections":{"type":"array","items":{"type":"string"}},"toneGuidelines":{"type":"string"},"customPromptAdditions":{"type":"string"},"coachingStyleId":{"type":["string","null"]},"objectionHandlers":{"type":"array","items":{"type":"object","required":["objection","handler"],"properties":{"objection":{"type":"string"},"handler":{"type":"string"}}}},"setGoals":{"type":"string"},"closerGoals":{"type":"string"},"competitors":{"type":"array","items":{"type":"object","required":["name"],"properties":{"name":{"type":"string"},"weaknesses":{"type":"string"}}}},"industry":{"type":"string"},"crmBaseUrl":{"type":"string"},"crmSessionCookie":{"type":"string","description":"Write-only; stored encrypted"},"settingsLocked":{"type":"boolean"},"styleLocked":{"type":"boolean"},"discordBotToken":{"type":["string","null"],"description":"Write-only"},"discordClientId":{"type":["string","null"]}}},"paginated":false,"destructive":false,"csv":false},
   listMembers: {"method":"GET","path":"/v1/team/members","tag":"Team","summary":"List team members","description":"Requires scope `team:read`.","scope":"team:read","pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
@@ -646,6 +676,7 @@ export const operations = {
   testWebhookEndpoint: {"method":"POST","path":"/v1/webhooks/{id}/test","tag":"Webhooks","summary":"Send a signed webhook.test event now and return the delivery result","description":"Requires scope `webhooks:write`.","scope":"webhooks:write","pathParams":["id"],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
   listWebhookDeliveries: {"method":"GET","path":"/v1/webhooks/{id}/deliveries","tag":"Webhooks","summary":"Delivery log for an endpoint (newest first)","description":"Requires scope `webhooks:read`.","scope":"webhooks:read","pathParams":["id"],"query":{"type":"object","properties":{"limit":{"type":"integer","minimum":1,"maximum":100,"default":20,"description":"Page size"},"cursor":{"type":"string","description":"`next_cursor` from the previous page"},"status":{"type":"string","enum":["pending","succeeded","failed"]}}},"body":null,"paginated":true,"destructive":false,"csv":false},
   replayWebhookDelivery: {"method":"POST","path":"/v1/webhooks/{id}/deliveries/{deliveryId}/replay","tag":"Webhooks","summary":"Queue the same message again (same webhook-id, new delivery record)","description":"Requires scope `webhooks:write`.","scope":"webhooks:write","pathParams":["id","deliveryId"],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
+  getOpenApi: {"method":"GET","path":"/v1/openapi.json","tag":"Meta","summary":"This OpenAPI document","description":"","scope":null,"pathParams":[],"query":null,"body":null,"paginated":false,"destructive":false,"csv":false},
 } as const satisfies Record<string, OperationMeta>;
 
 export type OperationId = keyof typeof operations;
@@ -1013,5 +1044,12 @@ export abstract class Operations {
    */
   replayWebhookDelivery(id: string, deliveryId: string, options?: RequestOptions): Promise<WebhookDelivery> {
     return this.request("POST", `/v1/webhooks/${encodeURIComponent(id)}/deliveries/${encodeURIComponent(deliveryId)}/replay`, { ...options });
+  }
+
+  /**
+   * This OpenAPI document.
+   */
+  getOpenApi(options?: RequestOptions): Promise<Record<string, unknown>> {
+    return this.request("GET", `/v1/openapi.json`, { ...options });
   }
 }
