@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    uses: pitchmentor/.github/.github/workflows/npm-release.yml@b8e5f0af1f83f377395b80a33d9320176bd45179 # v1
+    uses: pitchmentor/.github/.github/workflows/npm-release.yml@a6abeaf7d14428db807abd67280d834aab7aaae3 # v1
     permissions:
       contents: write # GitHub Release
       id-token: write # npm provenance
